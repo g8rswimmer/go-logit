@@ -51,6 +51,10 @@ func encodeMap(input reflect.Value) (map[string]any, error) {
 		if mapValue.Kind() == reflect.Interface {
 			mapValue = reflect.ValueOf(mapValue.Interface())
 		}
+		if !mapValue.IsValid() {
+			fmt.Println("valeu is not valid")
+			return nil, fmt.Errorf("the map key %s value is not valid or supported at this time", key)
+		}
 		val := mapValue.Interface()
 		fmt.Println(mapValue.Kind(), mapValue.Interface())
 		switch mapValue.Kind() {

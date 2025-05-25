@@ -1,8 +1,10 @@
 package logit
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -103,6 +105,38 @@ func Test_encodeMap(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "Invalid input type",
+			args: args{
+				input: struct{ Field string }{"test"},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "Non-string keys in map",
+			args: args{
+				input: map[int]any{1: "value1"},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "Nested structure with unsupported type",
+			args: args{
+				input: map[string]any{"key1": time.Date(2025, time.May, 20, 12, 33, 15, 8, time.UTC)},
+			},
+			want:    nil,
+			wantErr: false,
+		},
+		{
+			name: "Circular reference detection",
+			args: args{
+				input: map[string]any{"key1": nil},
+			},
+			want:    nil,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -112,6 +146,7 @@ func Test_encodeMap(t *testing.T) {
 			}
 
 			got, err := encodeMap(val)
+			fmt.Println(got, err)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("encodeMap() error = %v, wantErr %v", err, tt.wantErr)
 				return
