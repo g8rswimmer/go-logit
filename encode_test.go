@@ -1,7 +1,6 @@
 package logit
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -106,6 +105,19 @@ func Test_encodeMap(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "Invalid nested map key kind",
+			args: args{
+				input: map[string]any{
+					"key1": "value1",
+					"key2": map[int]any{
+						1: "should be an error",
+					},
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
 			name: "Invalid input type",
 			args: args{
 				input: struct{ Field string }{"test"},
@@ -146,7 +158,6 @@ func Test_encodeMap(t *testing.T) {
 			}
 
 			got, err := encodeMap(val)
-			fmt.Println(got, err)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("encodeMap() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -26,12 +26,12 @@ func Encode(input any) (any, error) {
 }
 
 func encodeMap(input reflect.Value) (map[string]any, error) {
-	if input.Kind() != reflect.Map {
-		return nil, errors.New("input should be a map")
+	if k := input.Kind(); k != reflect.Map {
+		return nil, fmt.Errorf("input must be a map but is %v", k)
 	}
 
-	if input.Type().Key().Kind() != reflect.String {
-		return nil, errors.New("map keys must be strings")
+	if k := input.Type().Key().Kind(); k != reflect.String {
+		return nil, fmt.Errorf("map keys must be strings but are %v", k)
 	}
 
 	resultMap := map[string]any{}
@@ -41,10 +41,12 @@ func encodeMap(input reflect.Value) (map[string]any, error) {
 		mapKey := iter.Key()
 
 		var key string
-		if mapKey.Kind() == reflect.String {
+		kk := mapKey.Kind()
+		switch kk {
+		case reflect.String:
 			key = mapKey.String()
-		} else {
-			return nil, errors.New("map keys must be strings")
+		default:
+			return nil, fmt.Errorf("map keys must be strings but are %v", kk)
 		}
 
 		mapValue := iter.Value()
@@ -52,28 +54,26 @@ func encodeMap(input reflect.Value) (map[string]any, error) {
 			mapValue = reflect.ValueOf(mapValue.Interface())
 		}
 		if !mapValue.IsValid() {
-			fmt.Println("valeu is not valid")
-			return nil, fmt.Errorf("the map key %s value is not valid or supported at this time", key)
+			return nil, fmt.Errorf("the map key %s value, %v, is not valid or supported at this time", key, mapValue.Kind())
 		}
 		val := mapValue.Interface()
-		fmt.Println(mapValue.Kind(), mapValue.Interface())
 		switch mapValue.Kind() {
 		case reflect.Map:
 			encodedVal, err := encodeMap(reflect.ValueOf(val))
 			if err != nil {
-				return nil, err
+				return nil, errors.Join(fmt.Errorf("the map key %s had an error encoding a map", key), err)
 			}
 			resultMap[key] = encodedVal
 		case reflect.Array, reflect.Slice:
 			encodedVal, err := encodeArray(reflect.ValueOf(val))
 			if err != nil {
-				return nil, err
+				return nil, errors.Join(fmt.Errorf("the map key %s had an error encoding an array or slice", key), err)
 			}
 			resultMap[key] = encodedVal
 		case reflect.Struct:
 			encodedVal, err := encodeStruct(reflect.ValueOf(val))
 			if err != nil {
-				return nil, err
+				return nil, errors.Join(fmt.Errorf("the map key %s had an error encoding a struct", key), err)
 			}
 			resultMap[key] = encodedVal
 		default:
