@@ -2,6 +2,7 @@ package logit
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 )
@@ -47,7 +48,11 @@ func encodeMap(input reflect.Value) (map[string]any, error) {
 		}
 
 		mapValue := iter.Value()
+		if mapValue.Kind() == reflect.Interface {
+			mapValue = reflect.ValueOf(mapValue.Interface())
+		}
 		val := mapValue.Interface()
+		fmt.Println(mapValue.Kind(), mapValue.Interface())
 		switch mapValue.Kind() {
 		case reflect.Map:
 			encodedVal, err := encodeMap(reflect.ValueOf(val))
@@ -55,7 +60,7 @@ func encodeMap(input reflect.Value) (map[string]any, error) {
 				return nil, err
 			}
 			resultMap[key] = encodedVal
-		case reflect.Array:
+		case reflect.Array, reflect.Slice:
 			encodedVal, err := encodeArray(reflect.ValueOf(val))
 			if err != nil {
 				return nil, err
@@ -76,8 +81,8 @@ func encodeMap(input reflect.Value) (map[string]any, error) {
 }
 
 func encodeArray(input reflect.Value) ([]any, error) {
-	if input.Kind() != reflect.Slice && input.Kind() != reflect.Slice {
-		return nil, errors.New("input should be a slice")
+	if input.Kind() != reflect.Slice && input.Kind() != reflect.Array {
+		return nil, fmt.Errorf("input should be a slice or array, but got %v", input.Kind())
 	}
 
 	var resultArray []any
@@ -92,7 +97,7 @@ func encodeArray(input reflect.Value) ([]any, error) {
 			}
 			resultArray = append(resultArray, encodedVal)
 		case reflect.Struct:
-			encodedVal, err := encodeStruct(reflect.ValueOf(val))
+			encodedVal, err := encodeStruct(val)
 			if err != nil {
 				return nil, err
 			}
@@ -119,30 +124,20 @@ func encodeStruct(input reflect.Value) (map[string]any, error) {
 		key := strings.ToLower(field.Name) // Default key is lowercase field name
 		tagValue := field.Tag.Get("logit")
 		tagOptions := strings.Split(tagValue, ",")
-		if len(tagOptions) > 0 {
+		if len(tagOptions) > 0 && len(tagOptions[0]) > 0 {
 			key = tagOptions[0] // Use the first tag option as key if available
 		}
 
-		if len(tagOptions) > 1 && tagOptions[1] == "omitempty" && fieldValue.IsZero() {
+		if len(tagOptions) > 1 && tagOptions[1] == "omitempty" {
 			continue // Skip if the omitempty tag is present and field value is zero
 		}
-
 		switch fieldValue.Kind() {
 		case reflect.Array, reflect.Slice:
-			arr := make([]any, fieldValue.Len())
-			for j := 0; j < fieldValue.Len(); j++ {
-				elem := fieldValue.Index(j)
-				if elem.Kind() == reflect.Map || elem.Kind() == reflect.Struct {
-					mapVal, err := encodeStruct(elem)
-					if err != nil {
-						return nil, err
-					}
-					arr[j] = mapVal
-				} else {
-					arr[j] = elem.Interface()
-				}
+			arrVale, err := encodeArray(fieldValue)
+			if err != nil {
+				return nil, err
 			}
-			resultMap[key] = arr
+			resultMap[key] = arrVale
 		case reflect.Map:
 			mapVal, err := encodeMap(fieldValue)
 			if err != nil {
@@ -156,7 +151,9 @@ func encodeStruct(input reflect.Value) (map[string]any, error) {
 			}
 			resultMap[key] = mapVal
 		default:
-			resultMap[key] = fieldValue.Interface()
+			if fieldValue.CanInterface() {
+				resultMap[key] = fieldValue.Interface()
+			}
 		}
 	}
 
