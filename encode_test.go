@@ -166,3 +166,127 @@ func Test_encodeMap(t *testing.T) {
 		})
 	}
 }
+
+func Test_encodeArray(t *testing.T) {
+	type args struct {
+		input any
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []any
+		wantErr bool
+	}{
+		{
+			name: "Succes, raw array",
+			args: args{
+				input: []int{8, 6, 2, 3, 4},
+			},
+			want:    []any{8, 6, 2, 3, 4},
+			wantErr: false,
+		},
+		{
+			name: "Succes, raw array double",
+			args: args{
+				input: [][]int{{8, 6}, {2, 3}},
+			},
+			want:    []any{[]any{8, 6}, []any{2, 3}},
+			wantErr: false,
+		},
+		{
+			name: "Succes, map array",
+			args: args{
+				input: []map[string]any{
+					{
+						"key1": "something one",
+						"key2": 2,
+						"key4": true,
+					},
+					{
+						"key1": "something two",
+						"key2": 7,
+						"key4": true,
+					},
+					{
+						"key1": "something three",
+						"key2": 100,
+						"key4": false,
+					},
+				},
+			},
+			want: []any{
+				map[string]any{
+					"key1": "something one",
+					"key2": 2,
+					"key4": true,
+				},
+				map[string]any{
+					"key1": "something two",
+					"key2": 7,
+					"key4": true,
+				},
+				map[string]any{
+					"key1": "something three",
+					"key2": 100,
+					"key4": false,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Succes, struct array",
+			args: args{
+				input: []testAttributes{
+					{
+						Attr1:         "struct attribute one",
+						Attr2:         99887,
+						Attr3:         []string{"elem1", "elem2"},
+						notGoingToLog: "this should not be logged",
+					},
+					{
+						Attr1:         "struct attribute two",
+						Attr2:         1000,
+						Attr3:         []string{"elem1_", "elem2"},
+						notGoingToLog: "this should not be logged",
+					},
+					{
+						Attr1:         "struct attribute three",
+						Attr2:         5,
+						Attr3:         []string{"elem1", "elem2__"},
+						notGoingToLog: "this should not be logged",
+					},
+				},
+			},
+			want: []any{
+				map[string]any{
+					"attribute_one": "struct attribute one",
+					"attr3":         []any{"elem1", "elem2"},
+				},
+				map[string]any{
+					"attribute_one": "struct attribute two",
+					"attr3":         []any{"elem1_", "elem2"},
+				},
+				map[string]any{
+					"attribute_one": "struct attribute three",
+					"attr3":         []any{"elem1", "elem2__"},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			val := reflect.ValueOf(tt.args.input)
+			if val.Kind() == reflect.Ptr {
+				val = val.Elem()
+			}
+
+			got, err := encodeArray(val)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("encodeArray() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}

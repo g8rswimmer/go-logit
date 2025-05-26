@@ -12,17 +12,15 @@ func Encode(input any) (any, error) {
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
 	}
-
+	if k := v.Kind(); k != reflect.Map && k != reflect.Struct {
+		return nil, fmt.Errorf("input must be a map or struct but is %v", k)
+	}
 	switch v.Kind() {
 	case reflect.Map:
 		return encodeMap(v)
-	case reflect.Array, reflect.Slice:
-		return encodeArray(v)
-	case reflect.Struct:
-		return encodeStruct(v)
 	default:
+		return encodeStruct(v)
 	}
-	return nil, errors.New("input type not supported")
 }
 
 func encodeMap(input reflect.Value) (map[string]any, error) {
@@ -95,13 +93,19 @@ func encodeArray(input reflect.Value) ([]any, error) {
 		val := input.Index(i)
 		switch val.Kind() {
 		case reflect.Map:
-			encodedVal, err := encodeMap(reflect.ValueOf(val))
+			encodedVal, err := encodeMap(val)
 			if err != nil {
 				return nil, err
 			}
 			resultArray = append(resultArray, encodedVal)
 		case reflect.Struct:
 			encodedVal, err := encodeStruct(val)
+			if err != nil {
+				return nil, err
+			}
+			resultArray = append(resultArray, encodedVal)
+		case reflect.Array, reflect.Slice:
+			encodedVal, err := encodeArray(val)
 			if err != nil {
 				return nil, err
 			}
