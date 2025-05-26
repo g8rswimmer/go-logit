@@ -273,6 +273,14 @@ func Test_encodeArray(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "Fail: not an array",
+			args: args{
+				input: "not an array",
+			},
+			want:    nil,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
