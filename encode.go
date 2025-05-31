@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func Encode(input any) (any, error) {
+func encode(input any) (any, error) {
 	v := reflect.ValueOf(input)
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
