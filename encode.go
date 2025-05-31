@@ -51,6 +51,9 @@ func encodeMap(input reflect.Value) (map[string]any, error) {
 		if mapValue.Kind() == reflect.Interface {
 			mapValue = reflect.ValueOf(mapValue.Interface())
 		}
+		if mapValue.Kind() == reflect.Ptr {
+			mapValue = mapValue.Elem()
+		}
 		if !mapValue.IsValid() {
 			return nil, fmt.Errorf("the map key %s value, %v, is not valid or supported at this time", key, mapValue.Kind())
 		}
@@ -75,7 +78,7 @@ func encodeMap(input reflect.Value) (map[string]any, error) {
 			}
 			resultMap[key] = encodedVal
 		default:
-			resultMap[key] = mapValue.Interface()
+			resultMap[key] = val
 		}
 	}
 
@@ -91,6 +94,9 @@ func encodeArray(input reflect.Value) ([]any, error) {
 
 	for i := 0; i < input.Len(); i++ {
 		val := input.Index(i)
+		if val.Kind() == reflect.Ptr {
+			val = val.Elem()
+		}
 		switch val.Kind() {
 		case reflect.Map:
 			encodedVal, err := encodeMap(val)
@@ -122,6 +128,9 @@ func encodeStruct(input reflect.Value) (map[string]any, error) {
 	if input.Kind() != reflect.Struct {
 		return nil, errors.New("input should be a struct")
 	}
+	if input.Kind() == reflect.Ptr {
+		input = input.Elem()
+	}
 
 	resultMap := make(map[string]any)
 
@@ -138,6 +147,9 @@ func encodeStruct(input reflect.Value) (map[string]any, error) {
 
 		if len(tagOptions) > 1 && tagOptions[1] == "omitempty" {
 			continue // Skip if the omitempty tag is present and field value is zero
+		}
+		if fieldValue.CanInterface() && fieldValue.Kind() == reflect.Ptr {
+			fieldValue = fieldValue.Elem()
 		}
 		switch fieldValue.Kind() {
 		case reflect.Array, reflect.Slice:

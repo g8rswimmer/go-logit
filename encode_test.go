@@ -29,6 +29,10 @@ func Test_encodeMap(t *testing.T) {
 			name: "Testing map encoding",
 			args: args{
 				input: map[string]any{
+					"key_ptr": func() *string {
+						p := "string pointer"
+						return &p
+					}(),
 					"key1": "value1",
 					"key2": 123,
 					"key3": []any{"1", "2"},
@@ -59,9 +63,10 @@ func Test_encodeMap(t *testing.T) {
 				},
 			},
 			want: map[string]any{
-				"key1": "value1",
-				"key2": 123,
-				"key3": []any{"1", "2"},
+				"key_ptr": "string pointer",
+				"key1":    "value1",
+				"key2":    123,
+				"key3":    []any{"1", "2"},
 				"key4": map[string]any{
 					"sub_key1": "sub value1",
 					"sub_key2": 3455,
