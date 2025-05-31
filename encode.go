@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 )
 
 func encode(input any) (any, error) {
@@ -57,6 +58,10 @@ func encodeMap(input reflect.Value) (map[string]any, error) {
 		if !mapValue.IsValid() {
 			return nil, fmt.Errorf("the map key %s value, %v, is not valid or supported at this time", key, mapValue.Kind())
 		}
+		if v, has := retrieveValue(mapValue); has {
+			resultMap[key] = v
+			continue
+		}
 		val := mapValue.Interface()
 		switch mapValue.Kind() {
 		case reflect.Map:
@@ -96,6 +101,10 @@ func encodeArray(input reflect.Value) ([]any, error) {
 		val := input.Index(i)
 		if val.Kind() == reflect.Ptr {
 			val = val.Elem()
+		}
+		if v, has := retrieveValue(val); has {
+			resultArray = append(resultArray, v)
+			continue
 		}
 		switch val.Kind() {
 		case reflect.Map:
@@ -151,6 +160,10 @@ func encodeStruct(input reflect.Value) (map[string]any, error) {
 		if fieldValue.CanInterface() && fieldValue.Kind() == reflect.Ptr {
 			fieldValue = fieldValue.Elem()
 		}
+		if val, has := retrieveValue(fieldValue); has {
+			resultMap[key] = val
+			continue
+		}
 		switch fieldValue.Kind() {
 		case reflect.Array, reflect.Slice:
 			arrVale, err := encodeArray(fieldValue)
@@ -178,4 +191,22 @@ func encodeStruct(input reflect.Value) (map[string]any, error) {
 	}
 
 	return resultMap, nil
+}
+
+func retrieveValue(input reflect.Value) (any, bool) {
+	if !input.CanInterface() {
+		return nil, false
+	}
+	if input.Kind() == reflect.Ptr {
+		input = input.Elem()
+	}
+	val := input.Interface()
+	switch v := val.(type) {
+	case time.Time:
+		return v.Format(time.RFC3339), true
+	case *time.Time:
+		return v.Format(time.RFC3339), true
+	default:
+		return nil, false
+	}
 }

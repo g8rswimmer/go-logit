@@ -122,7 +122,9 @@ func Test_encodeMap(t *testing.T) {
 			args: args{
 				input: map[string]any{"key1": time.Date(2025, time.May, 20, 12, 33, 15, 8, time.UTC)},
 			},
-			want:    nil,
+			want: map[string]any{
+				"key1": "2025-05-20T12:33:15Z",
+			},
 			wantErr: false,
 		},
 		{
