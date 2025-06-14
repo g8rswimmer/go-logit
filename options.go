@@ -57,3 +57,9 @@ func WithAttributesFieldName(name string) Option {
 		cfg.attrField = name
 	}
 }
+
+func WithFormatter(formatter Formatter) Option {
+	return func(cfg *Config) {
+		cfg.formatter = formatter
+	}
+}

@@ -8,6 +8,7 @@ import (
 
 type Config struct {
 	levelConverter  LevelConversion
+	formatter       Formatter
 	writer          io.Writer
 	timeLayout      string
 	timeStampLayout string
@@ -21,6 +22,7 @@ type Config struct {
 var defaultConfig = Config{
 	levelConverter:  defaultLevelString,
 	writer:          os.Stdout,
+	formatter:       &TextFormat{},
 	timeLayout:      time.RFC3339,
 	timeStampLayout: time.RFC3339,
 	timeStampField:  "timestamp",

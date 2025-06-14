@@ -3,8 +3,22 @@ package logit
 import "fmt"
 
 type Client struct {
-	tags *tags
+	tags *Tags
 	cfg  *Config
+}
+
+func NewClient(opts ...Option) *Client {
+	cfg := Config(defaultConfig)
+	for _, o := range opts {
+		o(&cfg)
+	}
+
+	return &Client{
+		cfg: &cfg,
+		tags: &Tags{
+			entries: map[string]any{},
+		},
+	}
 }
 
 func (c *Client) Copy() *Client {
@@ -56,5 +70,6 @@ func (c *Client) Entry(level Level, msg string, args ...any) *Entry {
 		cfg:   c.cfg,
 		tags:  c.tags.copy(),
 		msg:   fmt.Sprintf(msg, args...),
+		attr:  map[string]any{},
 	}
 }

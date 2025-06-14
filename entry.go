@@ -35,8 +35,8 @@ func (e Entry) Error() error {
 	return e.err
 }
 
-func (e *Entry) WithAttribute(attr map[string]any) *Entry {
-	e.attr = attr
+func (e *Entry) WithAttribute(name string, value any) *Entry {
+	e.attr[name] = value
 	return e
 }
 
@@ -45,5 +45,5 @@ func (e *Entry) WithError(err error) *Entry {
 	return e
 }
 func (e *Entry) Log(ctx context.Context) error {
-	return nil
+	return e.cfg.formatter.Format(ctx, e)
 }
