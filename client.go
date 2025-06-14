@@ -4,6 +4,7 @@ import "fmt"
 
 type Client struct {
 	tags *tags
+	cfg  *config
 }
 
 func (c *Client) Copy() *Client {
@@ -52,6 +53,7 @@ func (c *Client) Fatal(msg string, args ...any) *Entry {
 func (c *Client) Entry(level Level, msg string, args ...any) *Entry {
 	return &Entry{
 		level: level,
+		cfg:   c.cfg,
 		tags:  c.tags.copy(),
 		msg:   fmt.Sprintf(msg, args...),
 	}
