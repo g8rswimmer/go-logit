@@ -9,9 +9,9 @@ import (
 	"time"
 )
 
-type TextFormat struct{}
+type FormatText struct{}
 
-func (t *TextFormat) formatTags(e *Entry) ([]string, error) {
+func (t *FormatText) formatTags(e *Entry) ([]string, error) {
 	encodedTags, err := encode(e.tags.Retrieve())
 	if err != nil {
 		return []string{}, err
@@ -33,7 +33,7 @@ func (t *TextFormat) formatTags(e *Entry) ([]string, error) {
 	return tagEntries, nil
 }
 
-func (t *TextFormat) formatAttributes(e *Entry) ([]string, error) {
+func (t *FormatText) formatAttributes(e *Entry) ([]string, error) {
 	encodedAttributes, err := encode(e.attr)
 	if err != nil {
 		return []string{}, err
@@ -54,7 +54,7 @@ func (t *TextFormat) formatAttributes(e *Entry) ([]string, error) {
 	}
 	return attrEntries, nil
 }
-func (t *TextFormat) Format(ctx context.Context, e *Entry) error {
+func (t *FormatText) Format(ctx context.Context, e *Entry) error {
 	textEntry := fmt.Sprintf("%s %s %s:%s",
 		time.Now().Format(e.cfg.timeStampLayout),
 		e.cfg.levelConverter[e.level],

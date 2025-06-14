@@ -22,7 +22,7 @@ type Config struct {
 var defaultConfig = Config{
 	levelConverter:  defaultLevelString,
 	writer:          os.Stdout,
-	formatter:       &TextFormat{},
+	formatter:       &FormatText{},
 	timeLayout:      time.RFC3339,
 	timeStampLayout: time.RFC3339,
 	timeStampField:  "timestamp",
