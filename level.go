@@ -2,7 +2,7 @@ package logit
 
 type Level int
 
-type LevelCoversion map[Level]string
+type LevelConversion map[Level]string
 
 const (
 	LevelTrace Level = iota
@@ -15,7 +15,7 @@ const (
 	LevelFatal
 )
 
-var defaultLevelString LevelCoversion = map[Level]string{
+var defaultLevelString LevelConversion = map[Level]string{
 	LevelTrace:     "TRACE",
 	LevelDebug:     "DEBUG",
 	LevelInfo:      "INFO",

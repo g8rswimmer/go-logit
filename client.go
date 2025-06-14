@@ -4,7 +4,7 @@ import "fmt"
 
 type Client struct {
 	tags *tags
-	cfg  *config
+	cfg  *Config
 }
 
 func (c *Client) Copy() *Client {

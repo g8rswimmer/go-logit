@@ -2,21 +2,21 @@ package logit
 
 import "sync"
 
-type tags struct {
+type Tags struct {
 	mutex sync.RWMutex
 	tag   map[string]any
 }
 
-func (t *tags) add(name string, value any) {
+func (t *Tags) add(name string, value any) {
 	t.mutex.Lock()
 	defer t.mutex.Unlock()
 	t.tag[name] = value
 }
 
-func (t *tags) copy() *tags {
+func (t *Tags) copy() *Tags {
 	t.mutex.RLock()
 	defer t.mutex.RUnlock()
-	c := tags{
+	c := Tags{
 		mutex: sync.RWMutex{},
 		tag:   map[string]any{},
 	}
@@ -26,7 +26,7 @@ func (t *tags) copy() *tags {
 	return &c
 }
 
-func (t *tags) retrieve() map[string]any {
+func (t *Tags) Retrieve() map[string]any {
 	t.mutex.RLock()
 	defer t.mutex.RUnlock()
 	tm := map[string]any{}
