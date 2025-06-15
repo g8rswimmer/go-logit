@@ -55,7 +55,7 @@ func (t *FormatText) formatAttributes(e *Entry) ([]string, error) {
 	return attrEntries, nil
 }
 func (t *FormatText) Format(ctx context.Context, e *Entry) error {
-	textEntry := fmt.Sprintf("%s %s %s:%s",
+	textEntry := fmt.Sprintf("%s %s %s:\"%s\"",
 		time.Now().Format(e.cfg.timeStampLayout),
 		e.cfg.levelConverter[e.level],
 		e.cfg.messageField,
