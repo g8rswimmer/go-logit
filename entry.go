@@ -4,15 +4,39 @@ import "context"
 
 type Entry struct {
 	level Level
-	cfg   *config
-	tags  *tags
+	cfg   *Config
+	tags  *Tags
 	msg   string
 	attr  map[string]any
 	err   error
 }
 
-func (e *Entry) WithAttribute(attr map[string]any) *Entry {
-	e.attr = attr
+func (e Entry) Level() Level {
+	return e.level
+}
+
+func (e Entry) Config() *Config {
+	return e.cfg
+}
+
+func (e Entry) Tags() *Tags {
+	return e.tags
+}
+
+func (e Entry) Message() string {
+	return e.msg
+}
+
+func (e Entry) Atrributes() map[string]any {
+	return e.attr
+}
+
+func (e Entry) Error() error {
+	return e.err
+}
+
+func (e *Entry) WithAttribute(name string, value any) *Entry {
+	e.attr[name] = value
 	return e
 }
 
@@ -21,5 +45,5 @@ func (e *Entry) WithError(err error) *Entry {
 	return e
 }
 func (e *Entry) Log(ctx context.Context) error {
-	return nil
+	return e.cfg.formatter.Format(ctx, e)
 }

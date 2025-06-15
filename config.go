@@ -6,26 +6,30 @@ import (
 	"time"
 )
 
-type Option func(cfg *config)
-
-type config struct {
-	levelConverter  LevelCoversion
+type Config struct {
+	levelConverter  LevelConversion
+	formatter       Formatter
 	writer          io.Writer
 	timeLayout      string
 	timeStampLayout string
 	timeStampField  string
 	messageField    string
 	levelField      string
+	tagsField       string
+	attrField       string
 }
 
-var defaultConfig = config{
+var defaultConfig = Config{
 	levelConverter:  defaultLevelString,
 	writer:          os.Stdout,
+	formatter:       &FormatText{},
 	timeLayout:      time.RFC3339,
 	timeStampLayout: time.RFC3339,
 	timeStampField:  "timestamp",
 	messageField:    "message",
 	levelField:      "level",
+	tagsField:       "tags",
+	attrField:       "attributes",
 }
 
 func SetDefaultConfiguration(opt Option, opts ...Option) {
@@ -35,44 +39,38 @@ func SetDefaultConfiguration(opt Option, opts ...Option) {
 	}
 }
 
-func WithLevelConverter(lc LevelCoversion) Option {
-	return func(cfg *config) {
-		cfg.levelConverter = lc
-	}
+func (c Config) LevelConverter() LevelConversion {
+	return c.levelConverter
 }
 
-func WithWriter(w io.Writer) Option {
-	return func(cfg *config) {
-		cfg.writer = w
-	}
+func (c Config) Writer() io.Writer {
+	return c.writer
 }
 
-func WithTimeLayout(layout string) Option {
-	return func(cfg *config) {
-		cfg.timeLayout = layout
-	}
+func (c Config) TimeLayout() string {
+	return c.timeLayout
 }
 
-func WithTimestampLayout(layout string) Option {
-	return func(cfg *config) {
-		cfg.timeStampLayout = layout
-	}
+func (c Config) TimeStampLayout() string {
+	return c.timeStampLayout
 }
 
-func WithTimestampFieldName(name string) Option {
-	return func(cfg *config) {
-		cfg.timeStampField = name
-	}
+func (c Config) TimeStampField() string {
+	return c.timeStampField
 }
 
-func WithMessageFieldName(name string) Option {
-	return func(cfg *config) {
-		cfg.messageField = name
-	}
+func (c Config) MessageField() string {
+	return c.messageField
 }
 
-func WithLevelFieldName(name string) Option {
-	return func(cfg *config) {
-		cfg.levelField = name
-	}
+func (c Config) LevelField() string {
+	return c.levelField
+}
+
+func (c Config) TagsField() string {
+	return c.tagsField
+}
+
+func (c Config) AttributesField() string {
+	return c.attrField
 }
