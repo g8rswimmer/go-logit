@@ -17,6 +17,7 @@ type Config struct {
 	levelField      string
 	tagsField       string
 	attrField       string
+	errField        string
 }
 
 var defaultConfig = Config{
@@ -30,6 +31,7 @@ var defaultConfig = Config{
 	levelField:      "level",
 	tagsField:       "tags",
 	attrField:       "attributes",
+	errField:        "error",
 }
 
 func SetDefaultConfiguration(opt Option, opts ...Option) {
@@ -73,4 +75,8 @@ func (c Config) TagsField() string {
 
 func (c Config) AttributesField() string {
 	return c.attrField
+}
+
+func (c Config) ErrorField() string {
+	return c.errField
 }

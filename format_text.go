@@ -60,6 +60,9 @@ func (t *FormatText) Format(ctx context.Context, e *Entry) error {
 		e.cfg.levelConverter[e.level],
 		e.cfg.messageField,
 		e.msg)
+	if e.err != nil {
+		textEntry += fmt.Sprintf(" %s:\"%s\"", e.cfg.errField, e.err.Error())
+	}
 	textTags, err := t.formatTags(e)
 	switch {
 	case err != nil:

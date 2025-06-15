@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	logger := logit.NewClient()
+	logger := logit.NewClient(logit.WithFormatter(&logit.FormatJSON{}))
 	logger.AddTag("some_tag", "this is a tag").
 		AddTag("number_tag", 1).
 		Info("This is for some information").
