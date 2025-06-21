@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-	"strings"
 	"time"
 )
 
@@ -147,21 +146,20 @@ func encodeStruct(input reflect.Value) (map[string]any, error) {
 		field := input.Type().Field(i)
 		fieldValue := input.Field(i)
 
-		key := strings.ToLower(field.Name) // Default key is lowercase field name
-		tagValue := field.Tag.Get("logit")
-		tagOptions := strings.Split(tagValue, ",")
-		if len(tagOptions) > 0 && len(tagOptions[0]) > 0 {
-			key = tagOptions[0] // Use the first tag option as key if available
-		}
+		ft := encodeFieldTag(field)
 
-		if len(tagOptions) > 1 && tagOptions[1] == "omitempty" {
+		if ft.Omit {
 			continue // Skip if the omitempty tag is present and field value is zero
 		}
 		if fieldValue.CanInterface() && fieldValue.Kind() == reflect.Ptr {
 			fieldValue = fieldValue.Elem()
 		}
+		if val, has := handleTags(ft, fieldValue); has {
+			resultMap[ft.Name] = val
+			continue
+		}
 		if val, has := retrieveValue(fieldValue); has {
-			resultMap[key] = val
+			resultMap[ft.Name] = val
 			continue
 		}
 		switch fieldValue.Kind() {
@@ -170,22 +168,22 @@ func encodeStruct(input reflect.Value) (map[string]any, error) {
 			if err != nil {
 				return nil, err
 			}
-			resultMap[key] = arrVale
+			resultMap[ft.Name] = arrVale
 		case reflect.Map:
 			mapVal, err := encodeMap(fieldValue)
 			if err != nil {
 				return nil, err
 			}
-			resultMap[key] = mapVal
+			resultMap[ft.Name] = mapVal
 		case reflect.Struct:
 			mapVal, err := encodeStruct(fieldValue)
 			if err != nil {
 				return nil, err
 			}
-			resultMap[key] = mapVal
+			resultMap[ft.Name] = mapVal
 		default:
 			if fieldValue.CanInterface() {
-				resultMap[key] = fieldValue.Interface()
+				resultMap[ft.Name] = fieldValue.Interface()
 			}
 		}
 	}
@@ -209,4 +207,12 @@ func retrieveValue(input reflect.Value) (any, bool) {
 	default:
 		return nil, false
 	}
+}
+
+func handleTags(ft *fieldTag, input reflect.Value) (any, bool) {
+	switch {
+	case ft.Obfuscate:
+		return "xxxx", true
+	}
+	return nil, false
 }

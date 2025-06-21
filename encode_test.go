@@ -10,7 +10,7 @@ import (
 
 type testAttributes struct {
 	Attr1         string `logit:"attribute_one"`
-	Attr2         int    `logit:",omitempty"`
+	Attr2         int    `logit:",omit"`
 	Attr3         []string
 	notGoingToLog string
 }
@@ -349,6 +349,62 @@ func Test_encodeStruct(t *testing.T) {
 			got, err := encodeStruct(val)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("encodeStruct() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func Test_encodeTag(t *testing.T) {
+	type testStruct struct {
+		Attr1         string `logit:"attribute_one"`
+		Attr2         int    `logit:",omit"`
+		Attr3         []string
+		ObfuscateAttr map[string]any `logit:"obfuscate_attr,obfuscate"`
+		notGoingToLog string
+	}
+	type args struct {
+		input any
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    map[string]any
+		wantErr bool
+	}{
+		{
+			name: "Success",
+			args: args{
+				input: testStruct{
+					Attr1: "this is a test string",
+					Attr2: 11223,
+					Attr3: []string{"one", "four"},
+					ObfuscateAttr: map[string]any{
+						"some_map_key":   1,
+						"some_map_key_2": "some map string",
+					},
+					notGoingToLog: "should not be logged",
+				},
+			},
+			want: map[string]any{
+				"attribute_one":  "this is a test string",
+				"attr3":          []any{"one", "four"},
+				"obfuscate_attr": "xxxx",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			val := reflect.ValueOf(tt.args.input)
+			if val.Kind() == reflect.Ptr {
+				val = val.Elem()
+			}
+
+			got, err := encodeStruct(val)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("encode with tag error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			assert.Equal(t, tt.want, got)
