@@ -24,6 +24,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) Copy() *Client {
 	return &Client{
 		tags: c.tags.copy(),
+		cfg:  c.cfg,
 	}
 }
 

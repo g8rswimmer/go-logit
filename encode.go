@@ -209,7 +209,7 @@ func retrieveValue(input reflect.Value) (any, bool) {
 	}
 }
 
-func handleTags(ft *fieldTag, input reflect.Value) (any, bool) {
+func handleTags(ft *fieldTag, _ reflect.Value) (any, bool) {
 	switch {
 	case ft.Obfuscate:
 		return "xxxx", true
